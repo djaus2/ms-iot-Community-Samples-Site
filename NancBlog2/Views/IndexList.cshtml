@@ -1,0 +1,102 @@
+﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase<NancyTest.Objects.BlogPost>
+
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title></title>
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            th, td {
+                text-align: left;
+                padding: 8px;
+            }
+
+            tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+
+            th {
+                background-color:yellow;
+                color: blue;
+            }
+        </style>
+        <script type="text/javascript">
+            function OnFilter1()
+            {
+                
+                var SearchIdtxt = "Id~" + document.getElementById("txtId").value;
+                var SearchTitletxt = "title~" + document.getElementById("txttitle").value;
+                var SearchSummarytxt = "description~" + document.getElementById("txtdescription").value;
+                var SearchCodetxt = "permalink~" + document.getElementById("txtpermalink").value;
+                var SearchTagstxt = "samplelink~" + document.getElementById("txtsamplelink").value;
+                var SearchTagstxt2 = "keyword~" + document.getElementById("txtkeyword").value;
+                var Searchtxt = SearchIdtxt + "/" + SearchTitletxt + "/" + SearchSummarytxt + "/" + SearchCodetxt + "/" + SearchTagstxt + "/" + SearchTagstxt2;
+                //C#
+                Searchtxt = Searchtxt.replace("#", "%23");
+                //C++
+                Searchtxt = Searchtxt.replace("+", "Z");
+                Searchtxt = Searchtxt.replace("+", "Z");
+                Searchtxt = Searchtxt.replace("/", "z");
+                var windowlocation = "/Filter/" + Searchtxt;
+                alert(windowlocation);
+                window.location = windowlocation;
+            }
+            function OnFilter2() {
+                var windowlocation = "/Reset/";
+                alert(windowlocation);
+                window.location = windowlocation;
+            }
+        </script>
+    </head>
+    <body>
+        <form>
+            <table>
+                <tr>
+                    <td><input id="Submit1" type="button" value="Filter" onclick="OnFilter1()" /></td>>
+                    <td><input id="Submit2" type="button" value="Show All" onclick="OnFilter2()" /></td>>
+                </tr>
+            </table>
+
+            <table>
+                <tr>
+                    <th><a href="/Sort/Id">Id</a></th>
+                    <th><a href="/Sort/Title">title</a></th>
+                    <th>description:</th>
+                    <th><a href="/Sort/permalink">permalink</a></th>
+                    <th><a href="/Sort/samplelink">samplelink</a></th>
+                    <th><a href="/Sort/keyword">keyword</a></th>
+                </tr>
+
+                <tr>
+                    <td><input id="txtId" type="text" /></td>
+                    <td><input id="txttitle" type="text" /></td>
+                    <td><input id="txtdescription" type="text" /></td>
+                    <td><input id="txtpermalink" type="text" /></td>
+                    <td><input id="txtsamplelink" type="text" /></td>
+                    <td><input id="txtkeyword" type="text" /></td>
+                </tr>
+                @foreach (NancyTest.Objects.BlogPost objUser in NancyTest.Objects.BlogPost.ViewBlogPostz)
+                {
+                    <tr>
+                        <td>@objUser.Id</td>
+                        <td><a href=@objUser.TitleId>@objUser.title</a></td>
+                        <td>@objUser.SummarySub</td>
+                        <td>@objUser.permalink</td>
+                        <td>@objUser.samplelink</td>
+                        <td>@objUser.keyword</td>
+                        @*<td>@string.Join(", ", objUser.CodeLanguages)</td>
+                        <td>@string.Join(", ", objUser.Tags)</td>*@
+                    </tr>
+                }
+            </table>
+            </form>
+
+
+
+    </body>
+</html>
+        </style>
