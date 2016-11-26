@@ -1,4 +1,4 @@
-﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase<NancyTest.Objects.BlogPost>
+﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase<msiotCommunitySamples.Objects.BlogPost>
 
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
@@ -79,7 +79,7 @@
                     <td><input id="txtsamplelink" type="text" /></td>
                     <td><input id="txtkeyword" type="text" /></td>
                 </tr>
-                @foreach (NancyTest.Objects.BlogPost objUser in NancyTest.Objects.BlogPost.ViewBlogPostz)
+                @foreach (msiotCommunitySamples.Objects.BlogPost objUser in msiotCommunitySamples.Objects.BlogPost.ViewBlogPostz)
                 {
                     <tr>
                         <td>@objUser.Id</td>

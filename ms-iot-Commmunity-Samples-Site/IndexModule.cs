@@ -83,12 +83,15 @@
                         string filename = Path.GetFileNameWithoutExtension(file);
                         count--;
                         string fileTxt = File.ReadAllText(file);
-                        int startIndex = fileTxt.IndexOf(DBSep);
+                        int startIndex = fileTxt.IndexOf(DBSep,0);
                         if (startIndex < 0)
-                            startIndex = 0;
+                            continue;
                         int endIndex = fileTxt.IndexOf(DBSep, startIndex + DBSep.Length);
+                        if (endIndex < 0)
+                            continue;
                         string DB2 = fileTxt.Substring(startIndex, endIndex - startIndex + DBSep.Length) + "\r\n";
                         string DB = fileTxt.Substring(startIndex + DBSep.Length, endIndex - startIndex - DBSep.Length).Trim();
+                        fileTxt = fileTxt.Substring(endIndex+ DBSep.Length );
                         string[] lines = DB.Split(lineSep);
                         //string db3 = "\"filename\":\"" + filename + "\",\r\n" ;
                         Objects.BlogPost blogpost = new Objects.BlogPost();
@@ -140,8 +143,8 @@
 
                         //File.AppendAllText(MDDB, db3);
                         //fileTxt = fileTxt.Replace(DB2, "");
-                        //string name = Path.GetFileName(file);
-                        //File.WriteAllText(MD2 + name, fileTxt);
+                        string name = Path.GetFileName(file);
+                        File.WriteAllText(MD2 + name, fileTxt);
                         //System.Diagnostics.Debug.WriteLine(DB);
                     }
                     catch (Exception ex)
