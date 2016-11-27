@@ -9,6 +9,8 @@
     using Newtonsoft.Json;
     using System.Linq;
     using System.Reflection;
+    using Octokit;
+
 
     public class IndexModule : NancyModule
     {
@@ -32,7 +34,7 @@
 
         public IndexModule()
         {
-           
+            Get["/aa", true] = async (parameters, ct) => "Hello World!";
 
             Models.Errors errorMsg = new Models.Errors();
             Get["/"] = _ =>
@@ -296,9 +298,44 @@
 
                 return View["/ms_iot_Community_Samples/IndexList"];
             };
-
-            Get["/ms_iot_Community_Samples/Home"] = parameters =>
+  
+            Get["/ms_iot_Community_Samples/Home",true] = async (parameters, ct) =>
             {
+                //http://haacked.com/archive/2014/04/24/octokit-oauth/
+                string clientId = "2c0baac7c20dd4fb52b5";
+        string clientSecret = "f14d3e9055a292128abe472ab0b000a2a8c87166";//f14d3e9055a292128abe472ab0b000a2a8c87166
+                                                                         /*readonly*/
+                GitHubClient client3 =
+            new GitHubClient(new ProductHeaderValue("ms-iot-community-samples"), new Uri("https://github.com/"));
+        //https://github.com/octokit/octokit.net
+        var github = new GitHubClient(new ProductHeaderValue("ms-iot-community-samples"));
+                var user = await github.User.Get("djaus2");
+                var client = new GitHubClient(new ProductHeaderValue("ms-iot-community-samples"));
+                var basicAuth = new Credentials("djaus2", "amyliz2016"); // NOTE: not real credentials
+                client3.Credentials = basicAuth;
+
+                //var client = new GitHubClient(new ProductHeaderValue("dotnet-test-functional"));
+                //client.Credentials = GithubHelper.Credentials;
+                //http://stackoverflow.com/questions/24830617/reading-code-from-repository
+                var repos = await client3.Repository.GetAllForCurrent();
+                var repo = from n in repos where n.Name== "ms-iot-community-samples" select n;
+                if (repo.Count() == 1)
+                {
+                    var AllContent = await client.Repository.Content.GetAllContents(repo.First().Id);//.GetAllContent(repos[0].Owner.Login, repos[0].Name);
+                    var textOfFirstFile = AllContent[0].Content;
+                    var textOfFirstFileName = AllContent[0].Name;
+                    var AllContent2 = await client.Repository.Content.GetAllContents(repo.First().Id, textOfFirstFileName);
+                    var textOfFirstFile2 = AllContent[1].Content;
+                    var textOfFirstFile2Name = AllContent[1].Name;
+                    var AllContent3 = await client.Repository.Content.GetAllContents(repo.First().Id, textOfFirstFile2Name);
+                }
+
+                //var pull = await client3.PullRequest.GetAllForRepository("djaus2", "ms-iot-community-samples");
+
+                //var client2 = new GitHubClient(new ProductHeaderValue("ms-iot-community-samples"));
+                //var tokenAuth = new Credentials("token"); // NOTE: not real token
+                //client2.Credentials = tokenAuth;
+
                 Models.BlogPost.ResetBlogPostz();
                 return View["/ms_iot_Community_Samples/IndexList"];
             };
