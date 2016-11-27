@@ -69,7 +69,7 @@
                     Models.BlogPost.BlogPostz = md.ToList<Models.BlogPost>();
                     Models.BlogPost.ResetBlogPostz();
                 }
-                return View["ms_iot_Community_Samples",errorMsg];
+                return View["/ms_iot_Community_Samples/ms_iot_Community_Samples", errorMsg];
             };
             Get["/ms_iot_Community_Samples/load"] = _ =>
             {
@@ -96,17 +96,17 @@
                 //Objects.BlogPost.BlogPostz = md.Select(data => data)).ToList()
                 Models.BlogPost.BlogPostz = md.ToList<Models.BlogPost>();
                 Models.BlogPost.ResetBlogPostz();
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/default"] = _ => {
                 return View["default"];
             };
             Get["/ms_iot_Community_Samples/login"] = _ => {
-                return View["login"];
+                return View["/ms_iot_Community_Samples/login"];
             };
             Get["/ms_iot_Community_Samples/logout"] = _ => {
                 Models.Errors.LoggedInStatus = false;
-                return View["ms_iot_Community_Samples", errorMsg];
+                return View["/ms_iot_Community_Samples/ErrorPage", errorMsg];
             };
             Get["/ms_iot_Community_Samples/onlogin/{user}/{pwd}"] = parameters => {
                 string user = parameters.user;
@@ -122,9 +122,9 @@
                     Models.Errors.LoggedInStatus = false;
                     errorMsg.Message = "Login failed!";
                     errorMsg.Source = "/OnLogin";
-                    return View["ErrorPage",errorMsg];
+                    return View["/ms_iot_Community_Samples/ErrorPage", errorMsg];
                 }
-                return View["ms_iot_Community_Samples", errorMsg];
+                return View["/ms_iot_Community_Samples/ms_iot_Community_Samples", errorMsg];
             };
             Get["/ms_iot_Community_Samples/convert"] = _ =>
             {
@@ -132,7 +132,7 @@
                 {
                     errorMsg.Message = "Not logged in!";
                     errorMsg.Source = "/Convert";
-                    return View["ErrorPage", errorMsg];
+                    return View["/ms_iot_Community_Samples/ErrorPage", errorMsg];
                 }
                 string[] files0= Directory.GetFiles(jsonDirr, "*.*");
 
@@ -238,7 +238,7 @@
                 string json = JsonConvert.SerializeObject(Models.BlogPost.BlogPostz);
                 
                 File.AppendAllText(MDDB, json);
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
 
             Get["/ms_iot_Community_Samples/display/{name}"] = parameters =>
@@ -294,47 +294,47 @@
                 //    //blogs.Add(blogPost3);
 
 
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
 
             Get["/ms_iot_Community_Samples/Home"] = parameters =>
             {
                 Models.BlogPost.ResetBlogPostz();
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
 
             Get["/ms_iot_Community_Samples/Sort/{field}"] = parameters =>
             {
                 string sortString = parameters.field;
                 Models.BlogPost.Sort(sortString);
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/Show/{id}"] = parameters =>
             {
                 string id = parameters.id;
                 Models.BlogPost blogPost = Models.BlogPost.Get(id);
                 if (blogPost != null)
-                    return View["Index", blogPost];
+                    return View["/ms_iot_Community_Samples/Index", blogPost];
                 else
-                    return View["IndexList"];
+                    return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/reset"] = _ =>
             {
                 Models.BlogPost.ResetBlogPostz();
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/clear"] = _ =>
             {
                 Models.BlogPost.ClearBlogPostz();
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/list"] = _ =>
             {
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/Filter"] = _ =>
             {
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/Filter/{filter1}"] = parameters =>
             {
@@ -345,11 +345,11 @@
             {
                 string filter1 = parameters.filter1;
                 string filter2 = parameters.filter2;
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}"] = parameters =>
             {
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
             Get["/ms_iot_Community_Samples/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}/{tagsfilter}/{tagsfilter2}"] = parameters =>
             {
@@ -439,7 +439,7 @@
 
                     Models.BlogPost.Filter(filters);
 
-                return View["IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList"];
             };
         }
     }

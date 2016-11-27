@@ -108,8 +108,8 @@
     <Content Include="Themes\CityTheme\CityTheme.csproj" />
     <Content Include="Themes\CityTheme\Theme.png" />
     <Content Include="Themes\CityTheme\Theme.txt" />
-    <Content Include="Views\login.cshtml" />
-    <Content Include="Views\ErrorPage.cshtml" />
+    <Content Include="Views\ms_iot_Community_Samples\login.cshtml" />
+    <Content Include="Views\ms_iot_Community_Samples\ErrorPage.cshtml" />
     <Content Include="Themes\Web.config" />
     <Content Include="Themes\CityTheme\Placement.info" />
     <Content Include="Themes\CityTheme\Web.config" />
@@ -120,7 +120,7 @@
     <Content Include="Themes\CityTheme\Views\Web.config" />
     <Content Include="Themes\CityTheme\Views\_Home.cshtml" />
     <Content Include="Themes\CityTheme\Views\_Inner.cshtml" />
-    <None Include="Views\ms_iot_Community_Samples.cshtml" />
+    <None Include="Views\ms_iot_Community_Samples\ms_iot_Community_Samples.cshtml" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -134,8 +134,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-    <Content Include="Views\Index.cshtml" />
-    <Content Include="Views\IndexList.cshtml" />
+    <Content Include="Views\ms_iot_Community_Samples\Index.cshtml" />
+    <Content Include="Views\ms_iot_Community_Samples\IndexList.cshtml" />
     <Content Include="MD\3DPrintServer.md" />
     <Content Include="MD\AllJoynDSB.md" />
     <Content Include="MD\AllJoynDSBCS.md" />

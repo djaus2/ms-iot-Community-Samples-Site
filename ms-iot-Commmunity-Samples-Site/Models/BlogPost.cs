@@ -18,7 +18,7 @@ namespace msiotCommunitySamples.Models
         {
             get
             {
-                string ret = "/Show/" + Id;
+                string ret = "/ms_iot_Community_Samples/Show/" + Id;
                 return ret;
             }
         }
@@ -26,7 +26,7 @@ namespace msiotCommunitySamples.Models
         {
             get
             {
-                string ret = "/display/" + filename;
+                string ret = "/ms_iot_Community_Samples/display/" + filename;
                 return ret;
             }
         }
