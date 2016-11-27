@@ -13,22 +13,70 @@
     public class IndexModule : NancyModule
     {
         private const string DBSep = "---";
+
+        //Running from filesystem
         private const string dirr = @"C:\Users\david\Documents\Visual Studio 2015\Projects\NancBlog2\NancBlog2";
-        private const string jsonFile = "Data.json";
-        private const string jsonDirr = @"\Json\";
-        private const string MDDB = dirr + jsonDirr + jsonFile;
+        private const string jsonFile = @"Data.json";
+        private const string jsonDirr = dirr + @"\Json\";
+        private const string MDDB = jsonDirr + jsonFile;
         private const string MD2 = dirr + @"\MD2\";
         private const string MD = dirr + @"\MD\";
-        private const string jsonDir = dirr + @"\Json\";
+
+        //When deployed on server
+        //private const string jsonFile = @"Data.json";
+        //private const string jsonDirr = @"~/Json/";
+        //private const string MDDB = jsonDirr + jsonFile;
+        //private const string MD2 = @"~/MD2/";
+        //private const string MD = @"~/MD/";
+ 
 
         public IndexModule()
         {
+           
+
+            Models.Errors errorMsg = new Models.Errors();
             Get["/"] = _ =>
+            {
+                return View["default"];
+            };
+            Get["/ms_iot_Community_Samples"] = _ =>
+            {
+                bool getList = false;
+                if (Models.BlogPost.BlogPostz == null)
+                    getList = true;
+                else if (Models.BlogPost.BlogPostz.Count() == 0)
+                    getList = true;
+                if (getList)
+                {
+                    string[] files1 = Directory.GetFiles( jsonDirr, jsonFile);
+                    if (files1.Length != 1)
+                        return View["IndexList"];
+                    string document = "";
+                    document = File.ReadAllText(MDDB);
+
+                    JsonSerializerSettings set = new JsonSerializerSettings();
+                    set.MissingMemberHandling = MissingMemberHandling.Ignore;
+                    Models.BlogPost[] md = JsonConvert.DeserializeObject<Models.BlogPost[]>(document, set);
+                    //var document = converter.GetDocument("DB.json");
+                    //var jsonBytes = Encoding.UTF8.GetBytes(document);
+                    //return new Response
+                    //{
+                    //    ContentType = "application/json",
+                    //    Contents = s => s.Write(jsonBytes, 0, jsonBytes.Length)
+                    //};
+                    var mdd = from n in md select n;
+                    //Objects.BlogPost.BlogPostz = md.Select(data => data)).ToList()
+                    Models.BlogPost.BlogPostz = md.ToList<Models.BlogPost>();
+                    Models.BlogPost.ResetBlogPostz();
+                }
+                return View["ms_iot_Community_Samples",errorMsg];
+            };
+            Get["/ms_iot_Community_Samples/load"] = _ =>
             {
                 //var contentProvider = new FileContentProvider(jsonDirr, null);
                 //var converter = new MarkdownService(contentProvider);
                 //var document = contentProvider.GetContent("DB");
-                string[] files1 = Directory.GetFiles(dirr+ jsonDirr, jsonFile);
+                string[] files1 = Directory.GetFiles( jsonDirr, jsonFile);
                 if (files1.Length != 1)
                     return View["IndexList"];
                 string document = "";
@@ -36,7 +84,7 @@
 
                 JsonSerializerSettings set = new JsonSerializerSettings();
                 set.MissingMemberHandling = MissingMemberHandling.Ignore;
-                Objects.BlogPost[] md = JsonConvert.DeserializeObject<Objects.BlogPost[]>(document, set);
+                Models.BlogPost[] md = JsonConvert.DeserializeObject<Models.BlogPost[]>(document, set);
                 //var document = converter.GetDocument("DB.json");
                 //var jsonBytes = Encoding.UTF8.GetBytes(document);
                 //return new Response
@@ -46,17 +94,47 @@
                 //};
                 var mdd = from n in md select n;
                 //Objects.BlogPost.BlogPostz = md.Select(data => data)).ToList()
-                Objects.BlogPost.BlogPostz = md.ToList<Objects.BlogPost>();
-                Objects.BlogPost.ResetBlogPostz();
+                Models.BlogPost.BlogPostz = md.ToList<Models.BlogPost>();
+                Models.BlogPost.ResetBlogPostz();
                 return View["IndexList"];
             };
-
-            Get["/login"] = _ => {
+            Get["/ms_iot_Community_Samples/default"] = _ => {
+                return View["default"];
+            };
+            Get["/ms_iot_Community_Samples/login"] = _ => {
                 return View["login"];
             };
-            Get["/convert"] = _ =>
+            Get["/ms_iot_Community_Samples/logout"] = _ => {
+                Models.Errors.LoggedInStatus = false;
+                return View["ms_iot_Community_Samples", errorMsg];
+            };
+            Get["/ms_iot_Community_Samples/onlogin/{user}/{pwd}"] = parameters => {
+                string user = parameters.user;
+                string pwd = parameters.pwd;
+                user = user.Trim();
+                pwd = pwd.Trim();
+                if ((user == "a") && (pwd == "b"))
+                {
+                    Models.Errors.LoggedInStatus = true;
+                }
+                else
+                {
+                    Models.Errors.LoggedInStatus = false;
+                    errorMsg.Message = "Login failed!";
+                    errorMsg.Source = "/OnLogin";
+                    return View["ErrorPage",errorMsg];
+                }
+                return View["ms_iot_Community_Samples", errorMsg];
+            };
+            Get["/ms_iot_Community_Samples/convert"] = _ =>
             {
-                string[] files0= Directory.GetFiles(dirr + jsonDirr, "*.*");
+                if (!Models.Errors.LoggedInStatus)
+                {
+                    errorMsg.Message = "Not logged in!";
+                    errorMsg.Source = "/Convert";
+                    return View["ErrorPage", errorMsg];
+                }
+                string[] files0= Directory.GetFiles(jsonDirr, "*.*");
 
                 foreach (string file in files0)
                 {
@@ -75,7 +153,7 @@
                 //File.AppendAllText(MDDB, "[\r\n");
 
                 int count = files.Length;
-                Objects.BlogPost.ClearBlogPostz();
+                Models.BlogPost.ClearBlogPostz();
                 foreach (string file in files)
                 {
                     
@@ -83,18 +161,21 @@
                         string filename = Path.GetFileNameWithoutExtension(file);
                         count--;
                         string fileTxt = File.ReadAllText(file);
+
+                        //Get database between 1st and second lines of ---
                         int startIndex = fileTxt.IndexOf(DBSep,0);
                         if (startIndex < 0)
                             continue;
+
                         int endIndex = fileTxt.IndexOf(DBSep, startIndex + DBSep.Length);
                         if (endIndex < 0)
                             continue;
+
                         string DB2 = fileTxt.Substring(startIndex, endIndex - startIndex + DBSep.Length) + "\r\n";
                         string DB = fileTxt.Substring(startIndex + DBSep.Length, endIndex - startIndex - DBSep.Length).Trim();
                         fileTxt = fileTxt.Substring(endIndex+ DBSep.Length );
                         string[] lines = DB.Split(lineSep);
-                        //string db3 = "\"filename\":\"" + filename + "\",\r\n" ;
-                        Objects.BlogPost blogpost = new Objects.BlogPost();
+                        Models.BlogPost blogpost = new Models.BlogPost();
                         blogpost.filename = filename;
                         foreach (string line in lines)
                         {
@@ -107,9 +188,9 @@
                                 try
                                 {
                                 blogpost.lang = "\"" + vvalue + "\"";
-                                Type type = typeof(Objects.BlogPost);
+                                Type type = typeof(Models.BlogPost);
                                 //FieldInfo[] fields = type.GetFields(BindingFlags.)
-                                    var fields = typeof(Objects.BlogPost).GetFields(
+                                    var fields = typeof(Models.BlogPost).GetFields(
     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                                 var field = from n in fields where n.Name.Substring(1).Replace(">k__BackingField", "") == vname select n;
                                 if (field.Count()==1)
@@ -153,14 +234,14 @@
                     }
                 }
                 //File.AppendAllText(MDDB, "\r\n]\r\n");
-                Objects.BlogPost.ResetBlogPostz();
-                string json = JsonConvert.SerializeObject(Objects.BlogPost.BlogPostz);
+                Models.BlogPost.ResetBlogPostz();
+                string json = JsonConvert.SerializeObject(Models.BlogPost.BlogPostz);
                 
                 File.AppendAllText(MDDB, json);
                 return View["IndexList"];
             };
 
-            Get["/display/{name}"] = parameters =>
+            Get["/ms_iot_Community_Samples/display/{name}"] = parameters =>
             {
                 //string startOfDB = "<p>";
                 //string endOfDB = "</h2>";
@@ -175,9 +256,9 @@
                 return document.Content;
             };
 
-            Get["/json"] = parameters =>
+            Get["/ms_iot_Community_Samples/json"] = parameters =>
             {
-                Objects.BlogPost.ClearBlogPostz();
+                Models.BlogPost.ClearBlogPostz();
                 //    //var blogPost = new Objects.BlogPost
                 //    //{
                 //    //    Id = 2,
@@ -216,61 +297,61 @@
                 return View["IndexList"];
             };
 
-            Get["/Home"] = parameters =>
+            Get["/ms_iot_Community_Samples/Home"] = parameters =>
             {
-                Objects.BlogPost.ResetBlogPostz();
+                Models.BlogPost.ResetBlogPostz();
                 return View["IndexList"];
             };
 
-            Get["/Sort/{field}"] = parameters =>
+            Get["/ms_iot_Community_Samples/Sort/{field}"] = parameters =>
             {
                 string sortString = parameters.field;
-                Objects.BlogPost.Sort(sortString);
+                Models.BlogPost.Sort(sortString);
                 return View["IndexList"];
             };
-            Get["/Show/{id}"] = parameters =>
+            Get["/ms_iot_Community_Samples/Show/{id}"] = parameters =>
             {
                 string id = parameters.id;
-                Objects.BlogPost blogPost = Objects.BlogPost.Get(id);
+                Models.BlogPost blogPost = Models.BlogPost.Get(id);
                 if (blogPost != null)
                     return View["Index", blogPost];
                 else
                     return View["IndexList"];
             };
-            Get["/Reset"] = _ =>
+            Get["/ms_iot_Community_Samples/reset"] = _ =>
             {
-                Objects.BlogPost.ResetBlogPostz();
+                Models.BlogPost.ResetBlogPostz();
                 return View["IndexList"];
             };
-            Get["/Clear"] = _ =>
+            Get["/ms_iot_Community_Samples/clear"] = _ =>
             {
-                Objects.BlogPost.ClearBlogPostz();
+                Models.BlogPost.ClearBlogPostz();
                 return View["IndexList"];
             };
-            Get["/List"] = _ =>
-            {
-                return View["IndexList"];
-            };
-            Get["/Filter"] = _ =>
+            Get["/ms_iot_Community_Samples/list"] = _ =>
             {
                 return View["IndexList"];
             };
-            Get["/Filter/{filter1}"] = parameters =>
+            Get["/ms_iot_Community_Samples/Filter"] = _ =>
+            {
+                return View["IndexList"];
+            };
+            Get["/ms_iot_Community_Samples/Filter/{filter1}"] = parameters =>
             {
                 string filter1 = parameters.filter1;
                 return View["IndexList"];
             };
-            Get["/Filter/{filter1}/{filter2}"] = parameters =>
+            Get["/ms_iot_Community_Samples/Filter/{filter1}/{filter2}"] = parameters =>
             {
                 string filter1 = parameters.filter1;
                 string filter2 = parameters.filter2;
                 return View["IndexList"];
             };
-            Get["/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}"] = parameters =>
+            Get["/ms_iot_Community_Samples/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}"] = parameters =>
             {
                 return View["IndexList"];
             };
-            Get["/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}/{tagsfilter}/{tagsfilter2}"] = parameters =>
+            Get["/ms_iot_Community_Samples/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}/{tagsfilter}/{tagsfilter2}"] = parameters =>
             {
                 char[] sep = new char[] { '~' };
                 string[] tupl;
@@ -285,7 +366,7 @@
                     tupl = filter.Split(sep);
                     if (tupl.Length == 2)
                         if (tupl[0] != "")
-                            if (Objects.BlogPost.Fields.Contains(tupl[0]))
+                            if (Models.BlogPost.Fields.Contains(tupl[0]))
                             if (tupl[1] != "")
                                 filters.Add(new Tuple<string, string>(tupl[0],tupl[1]));                               
                 }
@@ -298,7 +379,7 @@
                     tupl = filter.Split(sep);
                     if (tupl.Length == 2)
                         if (tupl[0] != "")
-                            if (Objects.BlogPost.Fields.Contains(tupl[0]))
+                            if (Models.BlogPost.Fields.Contains(tupl[0]))
                                 if (tupl[1] != "")
                                     filters.Add(new Tuple<string, string>(tupl[0], tupl[1]));
                 }
@@ -311,33 +392,33 @@
                     tupl = filter.Split(sep);
                     if (tupl.Length == 2)
                         if (tupl[0] != "")
-                            if (Objects.BlogPost.Fields.Contains(tupl[0]))
+                            if (Models.BlogPost.Fields.Contains(tupl[0]))
                                 if (tupl[1] != "")
                                     filters.Add(new Tuple<string, string>(tupl[0], tupl[1]));
                 }
                 filter = parameters.codefilter;
                 filter = filter.Replace("Z", "+");
-                filter = filter.Replace("z", "/");
+                filter = filter.Replace("Y", "/");
                 filter = filter.Trim();
                 if (filter != "")                {
                     tupl = filter.Split(sep);
                     if (tupl.Length == 2)
                         if (tupl[0] != "")
-                            if (Objects.BlogPost.Fields.Contains(tupl[0]))
+                            if (Models.BlogPost.Fields.Contains(tupl[0]))
                                 if (tupl[1] != "")
                 
                                     filters.Add(new Tuple<string, string>(tupl[0], tupl[1]));
                 }
                 filter = parameters.tagsfilter;
                 filter = filter.Replace("Z", "+");
-                filter = filter.Replace("z", "/");
+                filter = filter.Replace("Y", "/");
                 filter = filter.Trim();
                 if (filter != "")
                 {
                     tupl = filter.Split(sep);
                     if (tupl.Length == 2)
                         if (tupl[0] != "")
-                            if (Objects.BlogPost.Fields.Contains(tupl[0]))
+                            if (Models.BlogPost.Fields.Contains(tupl[0]))
                                 if (tupl[1] != "")
                                     filters.Add(new Tuple<string, string>(tupl[0], tupl[1]));
                 }
@@ -350,13 +431,13 @@
                     tupl = filter.Split(sep);
                     if (tupl.Length == 2)
                         if (tupl[0] != "")
-                            if (Objects.BlogPost.Fields.Contains(tupl[0]))
+                            if (Models.BlogPost.Fields.Contains(tupl[0]))
                                 if (tupl[1] != "")
                                     filters.Add(new Tuple<string, string>(tupl[0], tupl[1]));
                 }
                 if (filters.Count != 0)
 
-                    Objects.BlogPost.Filter(filters);
+                    Models.BlogPost.Filter(filters);
 
                 return View["IndexList"];
             };

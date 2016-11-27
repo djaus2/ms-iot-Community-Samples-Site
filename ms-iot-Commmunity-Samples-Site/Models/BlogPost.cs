@@ -5,7 +5,7 @@ using System.Web;
 using msiotCommunitySamples.Utilities;
 using System.Reflection;
 
-namespace msiotCommunitySamples.Objects
+namespace msiotCommunitySamples.Models
 {
 
     public class BlogPost

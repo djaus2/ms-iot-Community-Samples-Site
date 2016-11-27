@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace msiotCommunitySamples.Objects
+namespace msiotCommunitySamples.Models
 {
     public class MD
     {

@@ -1,5 +1,4 @@
-﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase<msiotCommunitySamples.Objects.BlogPost>
-
+﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase<msiotCommunitySamples.Models.BlogPost>
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -32,7 +31,9 @@
                 var SearchTitletxt = "title~" + document.getElementById("txttitle").value;
                 var SearchSummarytxt = "description~" + document.getElementById("txtdescription").value;
                 var SearchCodetxt = "permalink~" + document.getElementById("txtpermalink").value;
+                SearchCodetxt = SearchCodetxt.replace("/", "Y");
                 var SearchTagstxt = "samplelink~" + document.getElementById("txtsamplelink").value;
+                SearchTagstxt = SearchTagstxt.replace("/", "Y");
                 var SearchTagstxt2 = "keyword~" + document.getElementById("txtkeyword").value;
                 var Searchtxt = SearchIdtxt + "/" + SearchTitletxt + "/" + SearchSummarytxt + "/" + SearchCodetxt + "/" + SearchTagstxt + "/" + SearchTagstxt2;
                 //C#
@@ -40,13 +41,12 @@
                 //C++
                 Searchtxt = Searchtxt.replace("+", "Z");
                 Searchtxt = Searchtxt.replace("+", "Z");
-                Searchtxt = Searchtxt.replace("/", "z");
-                var windowlocation = "/Filter/" + Searchtxt;
-                alert(windowlocation);
+                var windowlocation = "/ms_iot_Community_Samples/Filter/" + Searchtxt;
+                //alert(windowlocation);
                 window.location = windowlocation;
             }
             function OnFilter2() {
-                var windowlocation = "/Reset/";
+                var windowlocation = "/ms_iot_Community_Samples/Reset/";
                 alert(windowlocation);
                 window.location = windowlocation;
             }
@@ -61,9 +61,10 @@
                 </tr>
             </table>
 
-            <table>
+            <table
+                style="border:0px; width:100%;">
                 <tr>
-                    <th><a href="/Sort/Id">Id</a></th>
+                    <th style="width:30px"><a href="/Sort/Id">Id</a></th>
                     <th><a href="/Sort/Title">title</a></th>
                     <th>description:</th>
                     <th><a href="/Sort/permalink">permalink</a></th>
@@ -72,17 +73,17 @@
                 </tr>
 
                 <tr>
-                    <td><input id="txtId" type="text" /></td>
+                    <td style="width:30px"><input id="txtId" type="number" style="width:30px" /></td>
                     <td><input id="txttitle" type="text" /></td>
                     <td><input id="txtdescription" type="text" /></td>
                     <td><input id="txtpermalink" type="text" /></td>
                     <td><input id="txtsamplelink" type="text" /></td>
                     <td><input id="txtkeyword" type="text" /></td>
                 </tr>
-                @foreach (msiotCommunitySamples.Objects.BlogPost objUser in msiotCommunitySamples.Objects.BlogPost.ViewBlogPostz)
+                @foreach (msiotCommunitySamples.Models.BlogPost objUser in msiotCommunitySamples.Models.BlogPost.ViewBlogPostz)
                 {
                     <tr>
-                        <td>@objUser.Id</td>
+                        <td width="30px">@objUser.Id</td>
                         <td><a href=@objUser.TitleId>@objUser.title</a></td>
                         <td>@objUser.SummarySub</td>
                         <td>@objUser.permalink</td>
@@ -99,4 +100,3 @@
 
     </body>
 </html>
-        </style>
