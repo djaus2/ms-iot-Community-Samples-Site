@@ -10,7 +10,8 @@
     using System.Linq;
     using System.Reflection;
     using Octokit;
-
+    using System.Configuration;
+    using System.Collections.Specialized;
 
     public class IndexModule : NancyModule
     {
@@ -113,9 +114,20 @@
             Get["/ms_iot_Community_Samples/onlogin/{user}/{pwd}"] = parameters => {
                 string user = parameters.user;
                 string pwd = parameters.pwd;
+
+#if ISDEPLOYED
+                //http://www.dotnetprofessional.com/blog/post/2008/03/03/Encrypt-sections-of-WebConfig-or-AppConfig.aspx
+                NameValueCollection secureAppSettings =
+                        (NameValueCollection)ConfigurationManager.GetSection("secureAppSettings");
+                string admin = (string)secureAppSettings["Admin.UserName"];
+                string adminPwd = (string)secureAppSettings["Admin.Pwd"];
+#else
+                string admin = (string)ConfigurationManager.AppSettings["Admin.UserName"];
+                string adminPwd = (string)ConfigurationManager.AppSettings["Admin.Pwd"];
+#endif
                 user = user.Trim();
                 pwd = pwd.Trim();
-                if ((user == "a") && (pwd == "b"))
+                if ((user == admin) && (pwd == adminPwd))
                 {
                     Models.Errors.LoggedInStatus = true;
                 }
@@ -299,26 +311,45 @@
                 return View["/ms_iot_Community_Samples/IndexList"];
             };
   
-            Get["/ms_iot_Community_Samples/Home",true] = async (parameters, ct) =>
+            Get["/ms_iot_Community_Samples/GitHub",true] = async (parameters, ct) =>
             {
+                if (!Models.Errors.LoggedInStatus)
+                {
+                    errorMsg.Message = "Not logged in!";
+                    errorMsg.Source = "/GitHub";
+                    return View["/ms_iot_Community_Samples/ErrorPage", errorMsg];
+                }
+#if ISDEPLOYED
+                NameValueCollection secureAppSettings =
+                        (NameValueCollection)ConfigurationManager.GetSection("secureAppSettings");
+                string githuUrl =  (string)secureAppSettings["GitHub.Url"];
+                string githubRepo = (string)secureAppSettings["GitHub.Repository"];
+                string githubUsr = (string)secureAppSettings["GitHub.UserName"];
+                string githubPwd = (string)secureAppSettings["GitHub.Pwd"];
+#else
+                string githuUrl = (string)ConfigurationManager.AppSettings["GitHub.Url"];
+                string githubRepo = (string)ConfigurationManager.AppSettings["GitHub.MDsRepository"];
+                string githubUsr = (string)ConfigurationManager.AppSettings["GitHub.UserName"];
+                string githubPwd = (string)ConfigurationManager.AppSettings["GitHub.Pwd"];
+#endif
                 //http://haacked.com/archive/2014/04/24/octokit-oauth/
                 string clientId = "2c0baac7c20dd4fb52b5";
         string clientSecret = "f14d3e9055a292128abe472ab0b000a2a8c87166";//f14d3e9055a292128abe472ab0b000a2a8c87166
                                                                          /*readonly*/
                 GitHubClient client3 =
-            new GitHubClient(new ProductHeaderValue("ms-iot-community-samples"), new Uri("https://github.com/"));
+            new GitHubClient(new ProductHeaderValue(githubRepo), new Uri(githuUrl));
         //https://github.com/octokit/octokit.net
-        var github = new GitHubClient(new ProductHeaderValue("ms-iot-community-samples"));
-                var user = await github.User.Get("djaus2");
-                var client = new GitHubClient(new ProductHeaderValue("ms-iot-community-samples"));
-                var basicAuth = new Credentials("djaus2", "amyliz2016"); // NOTE: not real credentials
+        var github = new GitHubClient(new ProductHeaderValue(githubRepo));
+                var user = await github.User.Get(githubUsr);
+                var client = new GitHubClient(new ProductHeaderValue(githubRepo));
+                var basicAuth = new Credentials(githubUsr, githubPwd); // NOTE: not real credentials
                 client3.Credentials = basicAuth;
 
                 //var client = new GitHubClient(new ProductHeaderValue("dotnet-test-functional"));
                 //client.Credentials = GithubHelper.Credentials;
                 //http://stackoverflow.com/questions/24830617/reading-code-from-repository
                 var repos = await client3.Repository.GetAllForCurrent();
-                var repo = from n in repos where n.Name== "ms-iot-community-samples" select n;
+                var repo = from n in repos where n.Name== githubRepo select n;
                 if (repo.Count() == 1)
                 {
                     var AllContent = await client.Repository.Content.GetAllContents(repo.First().Id);//.GetAllContent(repos[0].Owner.Login, repos[0].Name);

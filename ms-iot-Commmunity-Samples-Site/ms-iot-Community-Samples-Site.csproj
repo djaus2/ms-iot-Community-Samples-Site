@@ -161,6 +161,13 @@
     <Content Include="MD\BlinkyMBM.md" />
     <Content Include="Json\Data.json" />
     <None Include="Views\default.cshtml" />
+    <None Include="Web config,copy" />
+    <None Include="Web config,copy.Debug">
+      <DependentUpon>Web config,copy</DependentUpon>
+    </None>
+    <None Include="Web config,copy.Release">
+      <DependentUpon>Web config,copy</DependentUpon>
+    </None>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
