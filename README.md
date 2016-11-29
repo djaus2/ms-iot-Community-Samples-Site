@@ -4,3 +4,7 @@ A Nancy based IIS website to host ms-iot-Community-Sample .md files that link ba
 Users will submit their [project name].md file to ms-iot-Community-Sample repository with some database info at top.
 
 This site then imports the .md files and removes the database info at top which it parses and imports to its datanbase.
+
+
+#Use
+If using need to rename web.config.copy as web.config and put in your own usernames etc.
