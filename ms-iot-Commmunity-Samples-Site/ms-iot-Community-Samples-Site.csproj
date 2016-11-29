@@ -133,7 +133,10 @@
     <Compile Include="IndexModule.cs" />
     <Compile Include="Models\BlogPost.cs" />
     <Compile Include="Models\Errors.cs" />
+    <Compile Include="Models\filter.cs" />
     <Compile Include="Models\layout.cs" />
+    <Compile Include="Models\login.cs" />
+    <Compile Include="Models\views.cs" />
     <Compile Include="MultiSort.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -47,14 +47,22 @@ namespace msiotCommunitySamples.Utilities
 
                 if (sortExpressions[index].Item2 == "asc")
                 {
-                    orderedQuery = (index == 0) ? query.OrderBy(expression)
-                      : orderedQuery.ThenBy(expression);
+                    orderedQuery = query.OrderBy(expression);
                 }
                 else
                 {
-                    orderedQuery = (index == 0) ? query.OrderByDescending(expression)
-                             : orderedQuery.ThenByDescending(expression);
+                    orderedQuery = query.OrderByDescending(expression);
+ 
                 }
+                //{
+                //    orderedQuery = (index == 0) ? query.OrderBy(expression)
+                //      : orderedQuery.ThenBy(expression);
+                //}
+                //else
+                //{
+                //    orderedQuery = (index == 0) ? query.OrderByDescending(expression)
+                //             : orderedQuery.ThenByDescending(expression);
+                //}
             }
 
             query = orderedQuery;

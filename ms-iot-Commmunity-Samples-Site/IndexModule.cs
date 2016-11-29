@@ -31,15 +31,22 @@
         //private const string MDDB = jsonDirr + jsonFile;
         //private const string MD2 = @"~/MD2/";
         //private const string MD = @"~/MD/";
- 
+
 
         public IndexModule()
         {
-            Get["/aa", true] = async (parameters, ct) => "Hello World!";
+            //async syntax
+            //Get["/aa", true] = async (parameters, ct) => "Hello World!";
 
             Models.Errors errorMsg = new Models.Errors();
+
+            //var ses = Request.Session;
             Get["/"] = _ =>
             {
+                Request.Session["filter"] = "";
+                Request.Session["LoggedInStatus"] = false;
+
+
                 return View["default"];
             };
             Get["/ms_iot_Community_Samples"] = _ =>
@@ -51,7 +58,7 @@
                     getList = true;
                 if (getList)
                 {
-                    string[] files1 = Directory.GetFiles( jsonDirr, jsonFile);
+                    string[] files1 = Directory.GetFiles(jsonDirr, jsonFile);
                     if (files1.Length != 1)
                         return View["IndexList"];
                     string document = "";
@@ -60,25 +67,20 @@
                     JsonSerializerSettings set = new JsonSerializerSettings();
                     set.MissingMemberHandling = MissingMemberHandling.Ignore;
                     Models.BlogPost[] md = JsonConvert.DeserializeObject<Models.BlogPost[]>(document, set);
-                    //var document = converter.GetDocument("DB.json");
-                    //var jsonBytes = Encoding.UTF8.GetBytes(document);
-                    //return new Response
-                    //{
-                    //    ContentType = "application/json",
-                    //    Contents = s => s.Write(jsonBytes, 0, jsonBytes.Length)
-                    //};
+
                     var mdd = from n in md select n;
                     //Objects.BlogPost.BlogPostz = md.Select(data => data)).ToList()
                     Models.BlogPost.BlogPostz = md.ToList<Models.BlogPost>();
-                    Models.BlogPost.ResetBlogPostz();
+                    Request.Session["filter"] = "";
                 }
+
                 return View["/ms_iot_Community_Samples/ms_iot_Community_Samples", errorMsg];
+                    //Models.BlogPost.ViewBlogPostz((string) Request.Session["filter"])];
             };
+
+            /*******************
             Get["/ms_iot_Community_Samples/load"] = _ =>
             {
-                //var contentProvider = new FileContentProvider(jsonDirr, null);
-                //var converter = new MarkdownService(contentProvider);
-                //var document = contentProvider.GetContent("DB");
                 string[] files1 = Directory.GetFiles( jsonDirr, jsonFile);
                 if (files1.Length != 1)
                     return View["IndexList"];
@@ -88,33 +90,50 @@
                 JsonSerializerSettings set = new JsonSerializerSettings();
                 set.MissingMemberHandling = MissingMemberHandling.Ignore;
                 Models.BlogPost[] md = JsonConvert.DeserializeObject<Models.BlogPost[]>(document, set);
-                //var document = converter.GetDocument("DB.json");
-                //var jsonBytes = Encoding.UTF8.GetBytes(document);
-                //return new Response
-                //{
-                //    ContentType = "application/json",
-                //    Contents = s => s.Write(jsonBytes, 0, jsonBytes.Length)
-                //};
+
                 var mdd = from n in md select n;
-                //Objects.BlogPost.BlogPostz = md.Select(data => data)).ToList()
                 Models.BlogPost.BlogPostz = md.ToList<Models.BlogPost>();
                 Models.BlogPost.ResetBlogPostz();
+                Request.Session["filter"] = "";
                 return View["/ms_iot_Community_Samples/IndexList"];
             };
+            **/
             Get["/ms_iot_Community_Samples/default"] = _ => {
+                Request.Session["filter"] = "";
+                Request.Session["LoggedInStatus"] = false;
                 return View["default"];
             };
-            Get["/ms_iot_Community_Samples/login"] = _ => {
-                return View["/ms_iot_Community_Samples/login"];
+            Get["/ms_iot_Community_Samples/login/{referer}"] = parameters => {
+                string referer = parameters.referer;
+                if (referer == "0")
+                    referer = "ms_iot_Community_Samples";
+                else
+                    referer = "IndexList";
+                return View["/ms_iot_Community_Samples/login",referer];
             };
-            Get["/ms_iot_Community_Samples/logout"] = _ => {
-                Models.Errors.LoggedInStatus = false;
-                return View["/ms_iot_Community_Samples/ErrorPage", errorMsg];
+            Get["/ms_iot_Community_Samples/logout/{referer}"] = parameters => {
+                string referer = parameters.referer;
+                if (referer == "0")
+                    referer = "ms_iot_Community_Samples";
+                else
+                    referer = "IndexList";
+                //Models.Errors.LoggedInStatus = false;
+                Request.Session["filter"] = "";
+                Request.Session["LoggedInStatus"] = false;
+                errorMsg.Message = "Logged out.";
+                errorMsg.Source = "/Logout";
+                errorMsg.LoggedInStatus = false;
+                if (referer== "ms_iot_Community_Samples")
+                    return View["/ms_iot_Community_Samples/" + referer, errorMsg];
+                else
+                    return View["/ms_iot_Community_Samples/" + referer, Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
-            Get["/ms_iot_Community_Samples/onlogin/{user}/{pwd}"] = parameters => {
+            Get["/ms_iot_Community_Samples/onlogin/{referer}/{user}/{pwd}"] = parameters => {
                 string user = parameters.user;
                 string pwd = parameters.pwd;
-
+                string referer = parameters.referer;
+                Request.Session["filter"] = "";
+                Request.Session["LoggedInStatus"] = false;
 #if ISDEPLOYED
                 //http://www.dotnetprofessional.com/blog/post/2008/03/03/Encrypt-sections-of-WebConfig-or-AppConfig.aspx
                 NameValueCollection secureAppSettings =
@@ -129,20 +148,29 @@
                 pwd = pwd.Trim();
                 if ((user == admin) && (pwd == adminPwd))
                 {
-                    Models.Errors.LoggedInStatus = true;
+                    Request.Session["LoggedInStatus"] = true;
+                    errorMsg.Message = "Logged in.";
+                    errorMsg.Source = "/OnLogin";
+                    errorMsg.LoggedInStatus = true;
                 }
                 else
                 {
-                    Models.Errors.LoggedInStatus = false;
+                    Request.Session["LoggedInStatus"] = false;
                     errorMsg.Message = "Login failed!";
                     errorMsg.Source = "/OnLogin";
+                    errorMsg.LoggedInStatus = false;
                     return View["/ms_iot_Community_Samples/ErrorPage", errorMsg];
                 }
-                return View["/ms_iot_Community_Samples/ms_iot_Community_Samples", errorMsg];
+                if (referer== "ms_iot_Community_Samples")
+                    return View["/ms_iot_Community_Samples/ms_iot_Community_Samples", errorMsg];
+                else
+                    return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
+
+
             Get["/ms_iot_Community_Samples/convert"] = _ =>
             {
-                if (!Models.Errors.LoggedInStatus)
+                if (!(bool)Request.Session["LoggedInStatus"])
                 {
                     errorMsg.Message = "Not logged in!";
                     errorMsg.Source = "/Convert";
@@ -167,10 +195,11 @@
                 //File.AppendAllText(MDDB, "[\r\n");
 
                 int count = files.Length;
+                bool abortFile = false;
                 Models.BlogPost.ClearBlogPostz();
                 foreach (string file in files)
                 {
-                    
+                    abortFile = false;
                     try {
                         string filename = Path.GetFileNameWithoutExtension(file);
                         count--;
@@ -201,119 +230,56 @@
                                 string vvalue = parts[1].Trim();
                                 try
                                 {
-                                blogpost.lang = "\"" + vvalue + "\"";
-                                Type type = typeof(Models.BlogPost);
-                                //FieldInfo[] fields = type.GetFields(BindingFlags.)
                                     var fields = typeof(Models.BlogPost).GetFields(
-    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                                var field = from n in fields where n.Name.Substring(1).Replace(">k__BackingField", "") == vname select n;
-                                if (field.Count()==1)
-                                {
-                                    field.First().SetValue(blogpost, vvalue);
+                                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                                    var field = from n in fields where n.Name.Substring(1).Replace(">k__BackingField", "") == vname select n;
+                                    if (field.Count()==1)
+                                    {
+                                        field.First().SetValue(blogpost, vvalue);
+                                    }
                                 }
-                                //if (vname != "samplelink")
-                                //    vvalue = parts[1].Trim();
-                                //else if (newLine.Contains("http"))
-                                //    vvalue = newLine.Substring(newLine.IndexOf("http")).Trim();
-                                //else
-                                //    vvalue = parts[1].Trim();
-                                //newLine = "\"" + vname + "\":\"" + vvalue + "\",";
-                            }
                                 catch (Exception ex)
                                 {
+                                    //Abort lines loop
+                                    abortFile = true;
+                                    break;
                                 }
-
-                                //newLine = "\"" + newLine.Replace(":", "\":\"") + "\",";
-                                //db3 += newLine + "\r\n";
                             }
-
-
-                    }
-                        ////Remove trailing comma
-                        //db3 = db3.Substring(0, db3.Length - "/r/n".Length + 1);
-                        //if (count != 0)
-                        //    db3 = "{\r\n" + db3 + "\r\n},\r\n";
-                        //else
-                        //    db3 = "{\r\n" + db3 + "\r\n}";
-
-                        //File.AppendAllText(MDDB, db3);
-                        //fileTxt = fileTxt.Replace(DB2, "");
+                        }
+                        if (abortFile)
+                        {
+                            //Abort this db record
+                            break;
+                        }
                         string name = Path.GetFileName(file);
                         File.WriteAllText(MD2 + name, fileTxt);
-                        //System.Diagnostics.Debug.WriteLine(DB);
                     }
                     catch (Exception ex)
                     {
-
+                        //Skip this file and continue with next
+                        continue;
                     }
                 }
-                //File.AppendAllText(MDDB, "\r\n]\r\n");
-                Models.BlogPost.ResetBlogPostz();
+                Request.Session["filter"] = "";
                 string json = JsonConvert.SerializeObject(Models.BlogPost.BlogPostz);
                 
                 File.AppendAllText(MDDB, json);
-                return View["/ms_iot_Community_Samples/IndexList"];
+                Request.Session["filter"] = "";
+                return View["/ms_iot_Community_Samples/IndexList",Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
 
             Get["/ms_iot_Community_Samples/display/{name}"] = parameters =>
             {
-                //string startOfDB = "<p>";
-                //string endOfDB = "</h2>";
                 var contentProvider = new FileContentProvider(MD2, null);
                 var converter = new MarkdownService(contentProvider);
                 var document = converter.GetDocument(parameters.name);
-                //int start = document.Content.IndexOf(startOfDB);
-                //int end = document.Content.IndexOf(endOfDB);
-                //string DB = document.Content.Substring(start, end - start + endOfDB.Length);
-                //document.Content = document.Content.Replace(DB, "");
-                //System.Diagnostics.Debug.WriteLine(DB);
                 return document.Content;
             };
-
-            Get["/ms_iot_Community_Samples/json"] = parameters =>
-            {
-                Models.BlogPost.ClearBlogPostz();
-                //    //var blogPost = new Objects.BlogPost
-                //    //{
-                //    //    Id = 2,
-                //    //    Title = "dFrom ASP.NET MVC to Nancy - Part 2",
-                //    //    Summary = "Lorem ipsum...vvvvvvvvvvvvvvvvvvvvvv Lorem ipsum...vvvvvvvvvvvvvvvvvvvvvv Lorem ipsum...vvvvvvvvvvvvvvvvvvvvvv",
-                //    //    Language = "en-us",
-                //    //    CodeLanguages = { "C" },
-                //    //    Tags = { "c#", "Native", "nancypants" }
-                //    //};
-
-                //    //var blogPost2 = new Objects.BlogPost
-                //    //{
-                //    //    Id = 1,
-                //    //    Title = "From ASP.NET MVC to Nancy - Part 3",
-                //    //    Summary = "Lorem ipsum...",
-                //    //    Language = "en-aus",
-                //    //    CodeLanguages = { "C#","C++" },
-                //    //    Tags = { "c#", ".NET", "nancy" }
-                //    //};
-                //    //var blogPost3 = new Objects.BlogPost
-                //    //{
-                //    //    Id = 3,
-                //    //    Title = "aFrom ASP.NET MVC to Nancy - Part 3",
-                //    //    Summary = "Lorem ipsum...1234567890123456789012345678901234567890",
-                //    //    Language = "en-aus",
-                //    //    CodeLanguages = { "C++" },
-                //    //    Tags = { "c#", "aspnetmvc", "nance" }
-                //    //};
-
-                //    //var blogs = new List<Objects.BlogPost>();
-                //    //blogs.Add(blogPost);
-                //    //blogs.Add(blogPost2);
-                //    //blogs.Add(blogPost3);
-
-
-                return View["/ms_iot_Community_Samples/IndexList"];
-            };
+           
   
             Get["/ms_iot_Community_Samples/GitHub",true] = async (parameters, ct) =>
             {
-                if (!Models.Errors.LoggedInStatus)
+                if (!(bool)Request.Session["LoggedInStatus"])
                 {
                     errorMsg.Message = "Not logged in!";
                     errorMsg.Source = "/GitHub";
@@ -335,7 +301,7 @@
                 //http://haacked.com/archive/2014/04/24/octokit-oauth/
                 string clientId = "2c0baac7c20dd4fb52b5";
         string clientSecret = "f14d3e9055a292128abe472ab0b000a2a8c87166";//f14d3e9055a292128abe472ab0b000a2a8c87166
-                                                                         /*readonly*/
+                                                                         //readonly
                 GitHubClient client3 =
             new GitHubClient(new ProductHeaderValue(githubRepo), new Uri(githuUrl));
         //https://github.com/octokit/octokit.net
@@ -367,16 +333,48 @@
                 //var tokenAuth = new Credentials("token"); // NOTE: not real token
                 //client2.Credentials = tokenAuth;
 
-                Models.BlogPost.ResetBlogPostz();
-                return View["/ms_iot_Community_Samples/IndexList"];
+                Request.Session["LoggedInStatus"] = false;
+                Request.Session["filter"] = "";
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
+           
 
             Get["/ms_iot_Community_Samples/Sort/{field}"] = parameters =>
             {
                 string sortString = parameters.field;
-                Models.BlogPost.Sort(sortString);
-                return View["/ms_iot_Community_Samples/IndexList"];
+                Models.FilterAndSortInfo fi;
+                if ((string)Request.Session["filter"] == null)
+                {
+                    fi = new Models.FilterAndSortInfo();
+                }
+                else if ((string)Request.Session["filter"] == "")
+                {
+                    fi = new Models.FilterAndSortInfo();
+                }
+                else
+                {
+                    JsonSerializerSettings set = new JsonSerializerSettings();
+                    set.MissingMemberHandling = MissingMemberHandling.Ignore;
+                    fi = JsonConvert.DeserializeObject<Models.FilterAndSortInfo>((string)Request.Session["filter"], set);
+                }
+                //For filter remove any pre-existing sorting (but for sort don't remove pre-existing sorting).
+                fi.SortString = sortString;
+                string json = JsonConvert.SerializeObject(fi);
+                Request.Session["filter"] = json;
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
+
+            Get["/ms_iot_Community_Samples/ClearSort"] = _ =>
+            {
+                if ((string)Request.Session["filter"] != null)
+                    if ((string)Request.Session["filter"] == "")
+                    {
+                        ((Models.FilterAndSortInfo)Request.Session["filter"]).SortString = "";
+                    }
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
+            };
+
+            
             Get["/ms_iot_Community_Samples/Show/{id}"] = parameters =>
             {
                 string id = parameters.id;
@@ -384,40 +382,30 @@
                 if (blogPost != null)
                     return View["/ms_iot_Community_Samples/Index", blogPost];
                 else
-                    return View["/ms_iot_Community_Samples/IndexList"];
+                    return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
             Get["/ms_iot_Community_Samples/reset"] = _ =>
             {
-                Models.BlogPost.ResetBlogPostz();
-                return View["/ms_iot_Community_Samples/IndexList"];
+                Request.Session["filter"] = "";
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
             Get["/ms_iot_Community_Samples/clear"] = _ =>
             {
+                Request.Session["filter"] = "";
                 Models.BlogPost.ClearBlogPostz();
-                return View["/ms_iot_Community_Samples/IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
             Get["/ms_iot_Community_Samples/list"] = _ =>
             {
-                return View["/ms_iot_Community_Samples/IndexList"];
+                string filter = (string)Request.Session["filter"];
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
-            Get["/ms_iot_Community_Samples/Filter"] = _ =>
+
+            Get["/ms_iot_Community_Samples/ClearFilter"] = _ =>
             {
-                return View["/ms_iot_Community_Samples/IndexList"];
-            };
-            Get["/ms_iot_Community_Samples/Filter/{filter1}"] = parameters =>
-            {
-                string filter1 = parameters.filter1;
-                return View["IndexList"];
-            };
-            Get["/ms_iot_Community_Samples/Filter/{filter1}/{filter2}"] = parameters =>
-            {
-                string filter1 = parameters.filter1;
-                string filter2 = parameters.filter2;
-                return View["/ms_iot_Community_Samples/IndexList"];
-            };
-            Get["/ms_iot_Community_Samples/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}"] = parameters =>
-            {
-                return View["/ms_iot_Community_Samples/IndexList"];
+                //Same as reset
+                Request.Session["filter"] = "";
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
             Get["/ms_iot_Community_Samples/Filter/{idfilter}/{titlefilter}/{summaryfilter}/{codefilter}/{tagsfilter}/{tagsfilter2}"] = parameters =>
             {
@@ -503,12 +491,32 @@
                                 if (tupl[1] != "")
                                     filters.Add(new Tuple<string, string>(tupl[0], tupl[1]));
                 }
-                if (filters.Count != 0)
+                Models.FilterAndSortInfo fi;
+                if ((string)Request.Session["filter"] == null)
+                {
+                    fi = new Models.FilterAndSortInfo();
+                }
+                else if ((string)Request.Session["filter"] == "")
+                {
+                    fi = new Models.FilterAndSortInfo();
+                }
+                else
+                {
+                    JsonSerializerSettings set = new JsonSerializerSettings();
+                    set.MissingMemberHandling = MissingMemberHandling.Ignore;
+                    fi = JsonConvert.DeserializeObject<Models.FilterAndSortInfo>((string)Request.Session["filter"], set);
+                }
+                //For filter remove any pre-existing sorting (but for sort don't remove pre-existing sorting)
+                fi.Filters = filters;
+                fi.SortString = "";
+                string json = JsonConvert.SerializeObject(fi);
+                Request.Session["filter"] = json;
 
-                    Models.BlogPost.Filter(filters);
 
-                return View["/ms_iot_Community_Samples/IndexList"];
+                return View["/ms_iot_Community_Samples/IndexList", Models.BlogPost.ViewBlogPostz((string)Request.Session["filter"])];
             };
+
         }
+
     }
 }

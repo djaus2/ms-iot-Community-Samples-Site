@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@inherits Nancy.ViewEngines.Razor.NancyRazorViewBase<string>
+<!DOCTYPE html>
 <html>
 <head>
     <title>login</title>
@@ -6,15 +7,17 @@
     <script type="text/javascript">
     function OnLogin()
     {
+
         var user = document.getElementById("txtuser").value;
         var pwd = document.getElementById("txtpwd").value;
-        
-        var windowlocation = "/ms_iot_Community_Samples/onlogin/" + user +"/" + pwd;
+        var referer = "@Model"; 
+        var windowlocation = "/ms_iot_Community_Samples/onlogin/" + referer + "/" + user +"/" + pwd;
         window.location = windowlocation;
     }
     function OnCancel()
     {
-        var windowlocation = "/ms_iot_Community_Samples/" 
+        var referer = "@Model";
+        var windowlocation = "/ms_iot_Community_Samples/";
         window.location = windowlocation;
     }
     </script>

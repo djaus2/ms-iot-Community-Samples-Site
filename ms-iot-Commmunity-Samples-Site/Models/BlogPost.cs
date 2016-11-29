@@ -4,10 +4,12 @@ using System.Linq;
 using System.Web;
 using msiotCommunitySamples.Utilities;
 using System.Reflection;
+using Nancy;
+using Newtonsoft.Json;
 
 namespace msiotCommunitySamples.Models
 {
-
+    [Serializable]
     public class BlogPost
     {
         private static int Count = 0;
@@ -109,7 +111,6 @@ namespace msiotCommunitySamples.Models
             set
             {
                 _BlogPostz = value;
-                ViewBlogPostz = value;
             }
         }
 
@@ -117,15 +118,35 @@ namespace msiotCommunitySamples.Models
         /// <summary>
         /// Use this in views
         /// </summary>
-        public static List<BlogPost> ViewBlogPostz { get; set; } = null;
-
-        //Remove filtering and sotrting from views
-        public static void ResetBlogPostz()
+        public static List<BlogPost> ViewBlogPostz (string filtersStr)
         {
-            ViewBlogPostz = (from n in BlogPostz select n).ToList<BlogPost>();
-            LastSort = "";
-            LastSortDirection = "desc";
+            var blogs = from n in BlogPostz select n;
+            List<BlogPost> blogg = blogs.ToList<BlogPost>();
+            if (filtersStr != "")
+            {
+                JsonSerializerSettings set = new JsonSerializerSettings();
+                set.MissingMemberHandling = MissingMemberHandling.Ignore;
+                var filter = JsonConvert.DeserializeObject<FilterAndSortInfo>(filtersStr, set);
+                if (filter.Filters != null)
+                {
+                    blogg = Models.BlogPost.Filter(filter.Filters);
+                }
+                if (filter.SortString != "")
+                {
+                    blogg = Sort(blogg, filter.SortString, filter.LastSort, filter.LastSortDirection);
+                }
+                
+            }
+            return blogg;
         }
+
+        ////Remove filtering and sotrting from views
+        //public static void ResetBlogPostz()
+        //{
+        //    ////ViewBlogPostz = (from n in BlogPostz select n).ToList<BlogPost>();
+        //    //LastSort = "";
+        //    //LastSortDirection = "desc";
+        //}
 
         internal static BlogPost Get(string id)
         {
@@ -141,7 +162,6 @@ namespace msiotCommunitySamples.Models
         public static void ClearBlogPostz()
         {
             Count = 0;
-            Count = 0;
             var fields = typeof(BlogPost).GetFields(
 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -149,35 +169,25 @@ BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             Fields = names.ToList<string>();
             BlogPostz = new List<BlogPost>();
-            LastSort = "";
-            LastSortDirection = "desc";
         }
 
-        private static string LastSort = "";
-        private static string LastSortDirection = "desc";
 
         //Sort the view on one field
-        public static void Sort(string sortString)
+        public static List<BlogPost> Sort(List<BlogPost> viewBlogPostz, string SortString, string LastSort, string LastSortDirection)
         {
-            //var lst = ViewBlogPostz.OrderBy(c => c.Authors);
-            //ViewBlogPostz = ViewBlogPostz.MultipleSort(sortExpressions).ToList();
-            //ViewBlogPostz = lst.ToList<BlogPost>();
-            //var studentList = StudentRepository.GetStudentList();
-            //string sortString = SortingString;
 
-            if (string.IsNullOrWhiteSpace(sortString))
+            if (string.IsNullOrWhiteSpace(SortString))
             {
                 // If no sorting string, give a message and return.
                 System.Diagnostics.Debug.WriteLine("Please type in a sorting string.");
-                return;
+                return viewBlogPostz;
             }
 
             try
             {
-                var viewBlogPostz = ViewBlogPostz;
                 // Prepare the sorting string into a list of Tuples
                 var sortExpressions = new List<Tuple<string, string>>();
-                string[] terms = sortString.Split(',');
+                string[] terms = SortString.Split(',');
                 for (int i = 0; i < terms.Length; i++)
                 {
                     string[] items = terms[i].Trim().Split('~');
@@ -205,26 +215,27 @@ BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
                 // Apply the sorting
                 viewBlogPostz = viewBlogPostz.MultipleSort(sortExpressions).ToList();
-                ViewBlogPostz = viewBlogPostz;
+                return viewBlogPostz;
             }
             catch (Exception e)
             {
                 var msg = "There is an error in your sorting string.  Please correct it and try again - "
               + e.Message;
                 System.Diagnostics.Debug.WriteLine(msg);
+                return BlogPostz;
             }
         }
 
         //Filter the view on one field
-        public static void Filter(List<Tuple<string, string>> filters)
+        public static List<BlogPost> Filter(List<Tuple<string, string>> filters)
         {
-            var lst = (from n in ViewBlogPostz select n).ToList<BlogPost>();
+            var lst = (from n in BlogPostz select n).ToList<BlogPost>();
 
             for (int index = 0; index < filters.Count; index++)
             {
                 lst = FilterGen<BlogPost>(lst, filters[index].Item1, filters[index].Item2);
             }
-            ViewBlogPostz = lst.ToList<BlogPost>();
+            return lst.ToList<BlogPost>();
         }
 
         public static List<T> FilterGen<T>(

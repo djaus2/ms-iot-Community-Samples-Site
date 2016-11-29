@@ -9,20 +9,28 @@ namespace msiotCommunitySamples.Models
     {
         public string Message { get; set; } = "";
         public string Source { get; set; } = "";
-        public static bool LoggedInStatus { get; set; } = false;
+        public bool LoggedInStatus { get; set; } = false;
 
-        public bool loggedInStatus
+        //public bool loggedInStatus
+        //{
+        //    get { return LoggedInStatus; }
+        //}
+
+        public string GetLogLink(bool loggedInStatus)
         {
-            get { return LoggedInStatus; }
+            if (!LoggedInStatus)
+                return "/ms_iot_Community_Samples/Login/0";
+            else
+                return "/ms_iot_Community_Samples/Logout/0";
         }
 
         public string LogLink
         {
             get {
                 if (!LoggedInStatus)
-                    return "/ms_iot_Community_Samples/Login";
+                    return "/ms_iot_Community_Samples/Login/0";
                 else
-                    return "/ms_iot_Community_Samples/Logout";
+                    return "/ms_iot_Community_Samples/Logout/0";
             }
         }
         public string LogLabel
