@@ -126,7 +126,6 @@
     <Content Include="Themes\CityTheme\Views\_Home.cshtml" />
     <Content Include="Themes\CityTheme\Views\_Inner.cshtml" />
     <None Include="Views\ms_iot_Community_Samples\ms_iot_Community_Samples.cshtml" />
-    <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bootstrapper.cs" />
@@ -165,18 +164,13 @@
     <Content Include="Json\Data.json" />
     <None Include="Views\default.cshtml" />
     <None Include="Web config,copy" />
-    <None Include="Web config,copy.Debug">
-      <DependentUpon>Web config,copy</DependentUpon>
-    </None>
-    <None Include="Web config,copy.Release">
-      <DependentUpon>Web config,copy</DependentUpon>
-    </None>
-    <None Include="Web.Debug.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </None>
-    <None Include="Web.Release.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </None>
+    <Content Include="Web config" />
+    <Content Include="Web config,copy.Debug">
+      <DependentUpon>Web config</DependentUpon>
+    </Content>
+    <Content Include="Web config,copy.Release">
+      <DependentUpon>Web config</DependentUpon>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="MD2\" />
